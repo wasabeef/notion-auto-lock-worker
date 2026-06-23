@@ -1,5 +1,7 @@
 # Notion Auto Lock Worker
 
+English | [日本語](README.ja.md)
+
 Create an unofficial [Notion Worker](https://developers.notion.com/workers/get-started/overview) that automatically locks stale Notion pages.
 
 The generated Worker scans configured root pages and data sources on a schedule, then locks pages that are still unlocked after the configured waiting period.
