@@ -1,0 +1,47 @@
+{
+  "name": "create-notion-auto-lock-worker",
+  "version": "0.1.0",
+  "description": "Create a Notion Worker that automatically locks stale Notion pages.",
+  "type": "module",
+  "packageManager": "npm@11.17.0",
+  "bin": {
+    "create-notion-auto-lock-worker": "./bin/create-notion-auto-lock-worker.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "typecheck:template": "tsc -p tsconfig.template.json --noEmit",
+    "check:quick": "npm run test && npm run typecheck:template",
+    "check:generated": "node scripts/check-generated.mjs",
+    "check:example": "npm --prefix example ci && npm --prefix example run typecheck",
+    "check": "npm run check:quick && npm run check:generated && npm run check:example",
+    "pack:dry-run": "npm pack --dry-run"
+  },
+  "keywords": [
+    "notion",
+    "notion-workers",
+    "worker",
+    "automation",
+    "page-lock"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=26",
+    "npm": ">=11"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "@notionhq/workers": "^0.4.0",
+    "typescript": "^6.0.3"
+  }
+}

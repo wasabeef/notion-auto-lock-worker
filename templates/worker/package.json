@@ -1,0 +1,26 @@
+{
+  "name": "__PROJECT_NAME__",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Notion Worker that automatically locks stale Notion pages.",
+  "type": "module",
+  "packageManager": "npm@11.17.0",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "deploy": "ntn workers deploy",
+    "dry-run": "ntn workers sync trigger autoLockPages",
+    "sync:status": "ntn workers sync status autoLockPages"
+  },
+  "dependencies": {
+    "@notionhq/workers": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.2"
+  }
+}
