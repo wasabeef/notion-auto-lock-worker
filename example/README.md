@@ -61,11 +61,10 @@ Store runtime values as [Worker secrets](https://developers.notion.com/workers/g
 ntn workers env set AUTO_LOCK_API_TOKEN=ntn_...
 ntn workers env set AUTO_LOCK_ROOT_PAGE_IDS=...
 ntn workers env set AUTO_LOCK_DATA_SOURCE_IDS=
-ntn workers env set LOCK_AFTER_MINUTES=180
+ntn workers env set WORKER_SCHEDULE=3h
+ntn workers env set LOCK_AFTER_MINUTES=60
 ntn workers env set DRY_RUN=true
 ntn workers env set LOCK_ROOT_PAGES=false
-ntn workers env set PAGE_SIZE=100
-ntn workers env set MAX_RETRIES=3
 ntn workers env set MAX_CRAWL_DEPTH=10
 ntn workers env set MAX_CRAWL_PAGES=1000
 ```
@@ -84,11 +83,10 @@ Never commit `.env`, `.env.cli`, or `.env.production`.
 | `AUTO_LOCK_API_TOKEN` | yes | none | Notion API token |
 | `AUTO_LOCK_ROOT_PAGE_IDS` | conditional | none | Comma-separated root page IDs to crawl recursively |
 | `AUTO_LOCK_DATA_SOURCE_IDS` | conditional | none | Comma-separated data source IDs to query directly |
-| `LOCK_AFTER_MINUTES` | no | `180` | Minutes after last edit before a page becomes eligible |
+| `WORKER_SCHEDULE` | no | `3h` | Scheduled sync interval, from `5m` to `7d` |
+| `LOCK_AFTER_MINUTES` | no | `60` | Minutes after last edit before a page becomes eligible |
 | `DRY_RUN` | no | `true` | Count eligible pages without locking them |
 | `LOCK_ROOT_PAGES` | no | `false` | Lock configured root pages themselves; by default root pages are crawl anchors only |
-| `PAGE_SIZE` | no | `100` | Page size for Notion pagination |
-| `MAX_RETRIES` | no | `3` | Maximum retry attempts for retryable Notion API requests |
 | `MAX_CRAWL_DEPTH` | no | `10` | Maximum nested page/block/database depth to crawl |
 | `MAX_CRAWL_PAGES` | no | `1000` | Maximum pages to crawl in one run |
 
@@ -100,7 +98,6 @@ Scaffold-time values are compiled into `src/index.ts`:
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `WORKER_SCHEDULE` | `1h` | Scheduled sync interval |
 | `AUDIT_DATABASE_TITLE` | `Auto Lock Runs` | Managed audit database title |
 | `NOTION_API_VERSION` | `2026-03-11` | Pinned Notion API version |
 
@@ -108,7 +105,7 @@ Change scaffold-time values in `src/index.ts`, then redeploy.
 
 ## Schedule And Cost
 
-`WORKER_SCHEDULE` defaults to `1h`. Notion's [Workers syncs guide](https://developers.notion.com/workers/guides/syncs#set-a-schedule) documents interval schedules such as `5m`, `15m`, `1h`, and `1d`, with a minimum of `5m` and a maximum of `7d`.
+`WORKER_SCHEDULE` defaults to `3h`. Set it as a Worker secret when you want to change the execution interval after scaffolding, then redeploy so Notion refreshes the sync capability. Notion's [Workers syncs guide](https://developers.notion.com/workers/guides/syncs#set-a-schedule) documents interval schedules such as `5m`, `15m`, `1h`, and `1d`, with a minimum of `5m` and a maximum of `7d`.
 
 As of 2026-06-23, Notion's [Workers pricing guide](https://www.notion.com/help/understand-pricing-for-workers) says Workers are free to try during beta on Business and Enterprise plans, and are expected to require Notion credits starting August 11, 2026. The same guide says each scheduled sync execution counts as one Worker run, Workers typically cost about `$0.0023` per run, and actual usage may vary based on how much work a Worker does.
 
@@ -124,7 +121,7 @@ Approximate run and cost examples, assuming `$0.0023` per run:
 
 The `1d`, `1h`, and `15m` examples align with Notion's published examples. `30m` and `5m` are simple estimates using the same per-run rate.
 
-With `LOCK_AFTER_MINUTES=180` and `WORKER_SCHEDULE=1h`, pages are locked roughly 3 to 4 hours after their last edit. Use a shorter schedule only when the lower latency is worth the extra runs.
+With `LOCK_AFTER_MINUTES=60` and `WORKER_SCHEDULE=3h`, pages are locked on the next scheduled run after they become at least 1 hour old. In practice, that means roughly 1 to 4 hours after the last edit.
 
 Root page crawling can issue many Notion API requests because it walks child pages, child databases, data sources, and database pages. Keep `DRY_RUN=true` at first and review `MAX_CRAWL_DEPTH` and `MAX_CRAWL_PAGES` before enabling live locking.
 

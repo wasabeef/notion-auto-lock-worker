@@ -38,10 +38,10 @@ Keep `DRY_RUN=true` until the audit log looks correct. The generated project inc
 | `AUTO_LOCK_API_TOKEN` | yes | none | Notion API token |
 | `AUTO_LOCK_ROOT_PAGE_IDS` | conditional | none | Comma-separated root page IDs to crawl recursively |
 | `AUTO_LOCK_DATA_SOURCE_IDS` | conditional | none | Comma-separated data source IDs to query directly |
+| `WORKER_SCHEDULE` | no | `1h` | Scheduled sync interval, from `5m` to `7d` |
 | `LOCK_AFTER_MINUTES` | no | `180` | Minutes after last edit before locking |
 | `DRY_RUN` | no | `true` | Count eligible pages without locking them |
 | `LOCK_ROOT_PAGES` | no | `false` | Lock configured root pages themselves |
-| `PAGE_SIZE` | no | `100` | Notion API pagination size |
 | `MAX_CRAWL_DEPTH` | no | `10` | Maximum nested crawl depth |
 | `MAX_CRAWL_PAGES` | no | `1000` | Maximum pages to crawl in one run |
 
@@ -57,7 +57,7 @@ Set at least one of `AUTO_LOCK_ROOT_PAGE_IDS` or `AUTO_LOCK_DATA_SOURCE_IDS`.
 
 ## Schedule And Cost
 
-The default schedule is `1h`, and the default lock delay is `180` minutes. Notion supports [interval schedules](https://developers.notion.com/workers/guides/syncs#set-a-schedule) from `5m` to `7d`.
+The default schedule is `1h`, and the default lock delay is `180` minutes. You can change the generated Worker schedule with `--schedule` during scaffolding or by setting `WORKER_SCHEDULE` before redeploying. Notion supports [interval schedules](https://developers.notion.com/workers/guides/syncs#set-a-schedule) from `5m` to `7d`.
 
 As of 2026-06-23, Notion's [Workers pricing guide](https://www.notion.com/help/understand-pricing-for-workers) says scheduled sync executions count as Worker runs, Workers typically cost about `$0.0023` per run, and actual usage may vary.
 

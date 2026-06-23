@@ -63,10 +63,16 @@ test("createProject renders a deployable worker scaffold", async () => {
     assert.equal(packageJson.name, "my-worker");
 
     const index = await readFile(path.join(targetDir, "src", "index.ts"), "utf8");
-    assert.match(index, /const WORKER_SCHEDULE = "30m"/);
+    assert.match(index, /const DEFAULT_WORKER_SCHEDULE = "30m"/);
+    assert.match(index, /readScheduleEnv\("WORKER_SCHEDULE", DEFAULT_WORKER_SCHEDULE\)/);
     assert.match(index, /const DEFAULT_LOCK_AFTER_MINUTES = Number\("120"\)/);
     assert.match(index, /const AUDIT_DATABASE_TITLE = "Lock Runs"/);
     assert.match(index, /const NOTION_API_VERSION = "2026-03-11"/);
+
+    const envExample = await readFile(path.join(targetDir, ".env.example"), "utf8");
+    assert.match(envExample, /WORKER_SCHEDULE=30m/);
+    assert.doesNotMatch(envExample, /PAGE_SIZE=/);
+    assert.doesNotMatch(envExample, /MAX_RETRIES=/);
 
     const gitignore = await readFile(path.join(targetDir, ".gitignore"), "utf8");
     assert.match(gitignore, /\.env/);

@@ -29,7 +29,8 @@ test("generated worker project has expected defaults and no placeholders", async
   assert.equal(packageJson.scripts["dry-run"], "ntn workers sync trigger autoLockPages");
 
   const index = await readFile(path.join(generatedTestDir, "src", "index.ts"), "utf8");
-  assert.match(index, /const WORKER_SCHEDULE = "1h"/);
+  assert.match(index, /const DEFAULT_WORKER_SCHEDULE = "1h"/);
+  assert.match(index, /readScheduleEnv\("WORKER_SCHEDULE", DEFAULT_WORKER_SCHEDULE\)/);
   assert.match(index, /const DEFAULT_LOCK_AFTER_MINUTES = Number\("180"\)/);
   assert.match(index, /AUTO_LOCK_ROOT_PAGE_IDS/);
   assert.match(index, /AUTO_LOCK_DATA_SOURCE_IDS/);
@@ -41,6 +42,13 @@ test("generated worker project has expected defaults and no placeholders", async
   assert.match(index, /\/databases\/\$\{encodeURIComponent\(databaseId\)\}/);
   assert.match(index, /is_locked: true/);
   assert.doesNotMatch(index, /__[A-Z0-9_]+__/);
+
+  const envExample = await readFile(path.join(generatedTestDir, ".env.example"), "utf8");
+  assert.match(envExample, /WORKER_SCHEDULE=1h/);
+  assert.match(envExample, /LOCK_AFTER_MINUTES=180/);
+  assert.doesNotMatch(envExample, /PAGE_SIZE=/);
+  assert.doesNotMatch(envExample, /MAX_RETRIES=/);
+  assert.doesNotMatch(envExample, /__[A-Z0-9_]+__/);
 
   const readme = await readFile(path.join(generatedTestDir, "README.md"), "utf8");
   assert.match(readme, /Node\.js 22 or later/);

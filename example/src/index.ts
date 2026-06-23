@@ -2,8 +2,8 @@ import { Worker } from "@notionhq/workers";
 import * as Builder from "@notionhq/workers/builder";
 import * as Schema from "@notionhq/workers/schema";
 
-const WORKER_SCHEDULE = "1h";
-const DEFAULT_LOCK_AFTER_MINUTES = Number("180");
+const DEFAULT_WORKER_SCHEDULE = "3h";
+const DEFAULT_LOCK_AFTER_MINUTES = Number("60");
 const DEFAULT_DRY_RUN = true;
 const DEFAULT_LOCK_ROOT_PAGES = false;
 const DEFAULT_PAGE_SIZE = 100;
@@ -14,7 +14,17 @@ const AUDIT_DATABASE_TITLE = "Auto Lock Runs";
 const NOTION_API_VERSION = "2026-03-11";
 const NOTION_API_BASE_URL = "https://api.notion.com/v1";
 const MAX_RETRY_DELAY_MS = 30_000;
+const MIN_SCHEDULE_MINUTES = 5;
+const MAX_SCHEDULE_MINUTES = 7 * 24 * 60;
+const SCHEDULE_MINUTES_BY_UNIT = {
+  m: 1,
+  h: 60,
+  d: 24 * 60
+} as const;
 const RETRYABLE_STATUS_CODES = new Set([409, 429, 500, 502, 503, 504, 529]);
+
+type WorkerSchedule = `${number}${"m" | "h" | "d"}`;
+type ScheduleUnit = keyof typeof SCHEDULE_MINUTES_BY_UNIT;
 
 type RuntimeConfig = {
   token: string;
@@ -128,6 +138,8 @@ class NotionApiError extends Error {
   }
 }
 
+const WORKER_SCHEDULE = readScheduleEnv("WORKER_SCHEDULE", DEFAULT_WORKER_SCHEDULE);
+
 const worker = new Worker();
 export default worker;
 
@@ -161,7 +173,7 @@ const auditRuns = worker.database("autoLockRuns", {
 worker.sync("autoLockPages", {
   database: auditRuns,
   mode: "incremental",
-  schedule: WORKER_SCHEDULE as `${number}${"m" | "h" | "d"}`,
+  schedule: WORKER_SCHEDULE,
   execute: async () => {
     const startedAt = new Date();
 
@@ -636,8 +648,8 @@ function loadRuntimeConfig(): RuntimeConfig {
     }),
     dryRun: readBooleanEnv("DRY_RUN", DEFAULT_DRY_RUN),
     lockRootPages: readBooleanEnv("LOCK_ROOT_PAGES", DEFAULT_LOCK_ROOT_PAGES),
-    pageSize: readIntegerEnv("PAGE_SIZE", DEFAULT_PAGE_SIZE, { min: 1, max: 100 }),
-    maxRetries: readIntegerEnv("MAX_RETRIES", DEFAULT_MAX_RETRIES, { min: 0 }),
+    pageSize: DEFAULT_PAGE_SIZE,
+    maxRetries: DEFAULT_MAX_RETRIES,
     maxCrawlDepth: readIntegerEnv("MAX_CRAWL_DEPTH", DEFAULT_MAX_CRAWL_DEPTH, { min: 0 }),
     maxCrawlPages: readIntegerEnv("MAX_CRAWL_PAGES", DEFAULT_MAX_CRAWL_PAGES, { min: 1 })
   };
@@ -695,6 +707,38 @@ function readFirstRequiredEnv(names: string[]): string {
   }
 
   throw new ConfigError(`${names[0]} is required.`);
+}
+
+function readScheduleEnv(name: string, defaultValue: string): WorkerSchedule {
+  const value = process.env[name]?.trim() || defaultValue;
+  const minutes = parseScheduleMinutes(value);
+
+  if (minutes === null) {
+    throw new ConfigError(`${name} must be an interval schedule like 5m, 1h, or 1d.`);
+  }
+
+  if (minutes < MIN_SCHEDULE_MINUTES || minutes > MAX_SCHEDULE_MINUTES) {
+    throw new ConfigError(`${name} must be at least 5m and at most 7d.`);
+  }
+
+  return value as WorkerSchedule;
+}
+
+function parseScheduleMinutes(value: string): number | null {
+  const match = /^(\d+)([mhd])$/.exec(value);
+
+  if (!match) {
+    return null;
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2] as ScheduleUnit;
+
+  if (!Number.isSafeInteger(amount) || amount <= 0) {
+    return null;
+  }
+
+  return amount * SCHEDULE_MINUTES_BY_UNIT[unit];
 }
 
 function readIdListEnv(name: string): string[] {

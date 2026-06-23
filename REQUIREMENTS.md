@@ -166,7 +166,7 @@ sync の実行 cycle では以下を行う。
 
 実際のロック時刻は、最終更新時刻から `LOCK_AFTER_MINUTES` 経過後、次回 Worker 実行時点となる。
 
-`WORKER_SCHEDULE` は Worker manifest の `worker.sync({ schedule })` に反映される。利用者は scaffold 時または生成済み project の設定変更により schedule を変えられる。変更後は再 deploy が必要である。
+`WORKER_SCHEDULE` は Worker secret/env として読み込み、`worker.sync({ schedule })` に反映される。利用者は scaffold 時の default 指定、または生成済み project の `WORKER_SCHEDULE` 変更により schedule を変えられる。変更後は sync capability を更新するため再 deploy が必要である。
 
 Worker は scheduled sync の実行 1 回ごとに Worker run として扱われる。Notion の Workers pricing guide では、scheduled sync は実行ごとに 1 Worker run として count され、Worker run は通常 `$0.0023` 程度と説明されている。Notion Workers が Notion credits を消費する料金体系では、schedule 頻度を高くするほど run 数と想定 cost が増える。そのため、MVP の default は安全側の `1h` とする。
 
@@ -200,11 +200,9 @@ MVP で扱う設定は以下とする。
 | `LOCK_AFTER_MINUTES` | no | `180` | secret | 最終更新からロックまでの待機時間 |
 | `DRY_RUN` | no | `true` | secret | `true` の場合、ロックせず log / audit のみ出力 |
 | `LOCK_ROOT_PAGES` | no | `false` | secret | `true` の場合、crawl 起点の root page 自体もロック対象に含める |
-| `PAGE_SIZE` | no | `100` | secret | data source query の page size |
-| `MAX_RETRIES` | no | `3` | secret | retry 可能な API request の最大 retry 回数 |
 | `MAX_CRAWL_DEPTH` | no | `10` | secret | root page crawl の最大 depth |
 | `MAX_CRAWL_PAGES` | no | `1000` | secret | 1 run で crawl する最大 page 数 |
-| `WORKER_SCHEDULE` | no | `1h` | scaffold | Worker の定期実行間隔 |
+| `WORKER_SCHEDULE` | no | `1h` | secret | Worker の定期実行間隔 |
 | `AUDIT_DATABASE_TITLE` | no | `Auto Lock Runs` | scaffold | managed audit database の初期 title |
 | `NOTION_API_VERSION` | no | `2026-03-11` | scaffold | Notion API version |
 
@@ -213,8 +211,6 @@ MVP で扱う設定は以下とする。
 - `AUTO_LOCK_API_TOKEN` は空文字を許可しない
 - `AUTO_LOCK_ROOT_PAGE_IDS` と `AUTO_LOCK_DATA_SOURCE_IDS` の少なくとも一方は空でないこと
 - `LOCK_AFTER_MINUTES` は `1` 以上の integer とする
-- `PAGE_SIZE` は `1` 以上 `100` 以下の integer とする
-- `MAX_RETRIES` は `0` 以上の integer とする
 - `MAX_CRAWL_DEPTH` は `0` 以上の integer とする
 - `MAX_CRAWL_PAGES` は `1` 以上の integer とする
 - `DRY_RUN` は `true` または `false` の文字列だけを許可する
@@ -405,7 +401,7 @@ MVP では以下を扱わない。
 - `MAX_CRAWL_DEPTH` と `MAX_CRAWL_PAGES` により crawl 範囲に上限がある
 - `WORKER_SCHEDULE` の default が `1h` である
 - `LOCK_ROOT_PAGES` の default が `false` である
-- 利用者が scaffold 時または生成済み project の設定変更で `WORKER_SCHEDULE` を変更できる
+- 利用者が scaffold 時または `WORKER_SCHEDULE` の Worker secret/env 変更で schedule を変更できる
 - ロック済みページは更新されない
 - `LOCK_AFTER_MINUTES=180` の場合、最終更新から 3 時間未満のページはロックされない
 - crawl / query 後に更新された page は lock 直前の再確認で skip される

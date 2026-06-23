@@ -74,7 +74,12 @@ async function assertGeneratedProject(targetDir: string): Promise<void> {
   assertEqual(packageJson.scripts?.["dry-run"], "ntn workers sync trigger autoLockPages", "dry-run script");
 
   const index = await readFile(path.join(targetDir, "src", "index.ts"), "utf8");
-  assertIncludes(index, 'const WORKER_SCHEDULE = "15m";', "schedule replacement");
+  assertIncludes(index, 'const DEFAULT_WORKER_SCHEDULE = "15m";', "schedule default replacement");
+  assertIncludes(
+    index,
+    'readScheduleEnv("WORKER_SCHEDULE", DEFAULT_WORKER_SCHEDULE)',
+    "runtime schedule configuration"
+  );
   assertIncludes(index, 'const DEFAULT_LOCK_AFTER_MINUTES = Number("90");', "lock-after replacement");
   assertIncludes(index, "AUTO_LOCK_ROOT_PAGE_IDS", "root page scope configuration");
   assertIncludes(index, "AUTO_LOCK_DATA_SOURCE_IDS", "multi data source configuration");
@@ -90,9 +95,12 @@ async function assertGeneratedProject(targetDir: string): Promise<void> {
   const envExample = await readFile(path.join(targetDir, ".env.example"), "utf8");
   assertIncludes(envExample, "AUTO_LOCK_ROOT_PAGE_IDS=", "root page env example");
   assertIncludes(envExample, "AUTO_LOCK_DATA_SOURCE_IDS=", "data source list env example");
+  assertIncludes(envExample, "WORKER_SCHEDULE=15m", "schedule env example");
   assertIncludes(envExample, "LOCK_ROOT_PAGES=false", "root page lock opt-in env example");
   assertIncludes(envExample, "MAX_CRAWL_DEPTH=10", "crawl depth env example");
   assertIncludes(envExample, "MAX_CRAWL_PAGES=1000", "crawl page env example");
+  assertNotIncludes(envExample, "PAGE_SIZE=", "page size env example");
+  assertNotIncludes(envExample, "MAX_RETRIES=", "retry count env example");
 
   const leftoverPlaceholders = await findPlaceholderFiles(targetDir);
   if (leftoverPlaceholders.length > 0) {
@@ -160,6 +168,12 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 function assertIncludes(content: string, expected: string, label: string): void {
   if (!content.includes(expected)) {
     throw new Error(`${label}: expected generated content to include ${JSON.stringify(expected)}`);
+  }
+}
+
+function assertNotIncludes(content: string, unexpected: string, label: string): void {
+  if (content.includes(unexpected)) {
+    throw new Error(`${label}: expected generated content to omit ${JSON.stringify(unexpected)}`);
   }
 }
 
