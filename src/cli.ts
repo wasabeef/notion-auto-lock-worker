@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createProject, parseCliArgs } from "../lib/scaffold.js";
+import { createProject, parseCliArgs } from "./scaffold.js";
 
 try {
   const options = parseCliArgs(process.argv.slice(2));

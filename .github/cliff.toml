@@ -1,0 +1,77 @@
+[changelog]
+header = """
+# Changelog\n
+"""
+body = """
+{% if version -%}
+    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else -%}
+    ## [Unreleased]
+{% endif -%}
+{% for group, commits in commits | group_by(attribute="group") %}
+    {% if group != "Merged Pull Requests" %}
+    {% set_global visible_commits = 0 %}
+    {% for commit in commits %}
+        {% if group != "Changed" or (commit.body and "Release note:" in commit.body) %}
+            {% set_global visible_commits = visible_commits + 1 %}
+        {% endif %}
+    {% endfor %}
+    {% if visible_commits > 0 %}
+        ### {{ group | upper_first }}
+        {% for commit in commits %}
+            {% if group != "Changed" or (commit.body and "Release note:" in commit.body) %}
+                {% if commit.body and "Release note:" in commit.body -%}
+                    - {{ commit.body | split(pat="Release note:") | last | split(pat="\n") | first | trim | upper_first }}
+                {% else -%}
+                    - {{ commit.message | split(pat="\n") | first | trim | upper_first }}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% endif %}
+{% endfor %}
+{% set_global merged_pr_count = 0 %}
+{% for commit in commits %}
+    {% if commit.group == "Merged Pull Requests" %}
+        {% set_global merged_pr_count = merged_pr_count + 1 %}
+    {% endif %}
+{% endfor %}
+{% if merged_pr_count > 0 %}
+    ### Merged Pull Requests
+    {% for commit in commits %}
+        {% if commit.group == "Merged Pull Requests" %}
+            {% set pr_number = commit.message | split(pat="#") | last | split(pat=" ") | first | trim %}
+            {% set pr_title = commit.message | split(pat="\n\n") | last | trim | upper_first %}
+            - [#{{ pr_number }}](https://github.com/wasabeef/notion-auto-lock-worker/pull/{{ pr_number }}) {{ pr_title }}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+\n
+"""
+trim = true
+postprocessors = [
+    { pattern = '\n{3,}', replace = "\n\n" },
+    { pattern = '\n\n-', replace = "\n-" },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+commit_parsers = [
+    { message = "^Merge pull request #[0-9]+", group = "Merged Pull Requests" },
+    { body = "Release note: skip", skip = true },
+    { message = "^chore: bump version", skip = true },
+    { message = "^feat", group = "Added" },
+    { message = "^fix", group = "Fixed" },
+    { message = "^perf", group = "Fixed" },
+    { message = "^refactor", group = "Changed" },
+    { message = "^test", group = "Changed" },
+    { message = "^docs", group = "Changed" },
+    { message = "^ci", group = "Changed" },
+    { message = "^chore", group = "Changed" },
+    { message = "^build", group = "Changed" },
+    { message = ".*deprecated", group = "Deprecated" },
+    { message = ".*security", group = "Security" },
+]
+filter_commits = true
+sort_commits = "oldest"

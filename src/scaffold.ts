@@ -25,8 +25,29 @@ Options:
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TEMPLATE_DIR = path.join(PACKAGE_ROOT, "templates", "worker");
 
-export function parseCliArgs(argv) {
-  const options = {
+export type ScaffoldOptions = {
+  targetDir: string;
+  workerSchedule: string;
+  lockAfterMinutes: number;
+  auditDatabaseTitle: string;
+  notionApiVersion: string;
+  force: boolean;
+  help: boolean;
+  helpText: string;
+};
+
+export type CreateProjectOptions = Omit<ScaffoldOptions, "help" | "helpText">;
+
+export type CreateProjectResult = {
+  projectName: string;
+  targetDir: string;
+  relativeTargetDir: string;
+};
+
+type TemplateReplacements = Record<string, string>;
+
+export function parseCliArgs(argv: string[]): ScaffoldOptions {
+  const options: ScaffoldOptions = {
     targetDir: DEFAULT_TARGET_DIR,
     workerSchedule: DEFAULT_WORKER_SCHEDULE,
     lockAfterMinutes: DEFAULT_LOCK_AFTER_MINUTES,
@@ -37,7 +58,7 @@ export function parseCliArgs(argv) {
     helpText: HELP_TEXT
   };
 
-  const positional = [];
+  const positional: string[] = [];
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -104,7 +125,7 @@ export function parseCliArgs(argv) {
   return options;
 }
 
-export async function createProject(options) {
+export async function createProject(options: CreateProjectOptions): Promise<CreateProjectResult> {
   const targetDir = path.resolve(options.targetDir);
   const projectName = toPackageName(path.basename(targetDir));
 
@@ -133,7 +154,7 @@ export async function createProject(options) {
   };
 }
 
-function readFlagValue(argv, index, flag) {
+function readFlagValue(argv: string[], index: number, flag: string): string {
   const value = argv[index + 1];
   if (!value || value.startsWith("-")) {
     throw new Error(`${flag} requires a value.`);
@@ -141,7 +162,7 @@ function readFlagValue(argv, index, flag) {
   return value;
 }
 
-function parsePositiveInteger(value, name) {
+function parsePositiveInteger(value: string, name: string): number {
   if (!/^\d+$/.test(value)) {
     throw new Error(`${name} must be a positive integer.`);
   }
@@ -154,7 +175,7 @@ function parsePositiveInteger(value, name) {
   return parsed;
 }
 
-function validateSchedule(value) {
+function validateSchedule(value: string): void {
   if (value === "manual" || value === "continuous") {
     throw new Error("Only interval schedules are supported for this project.");
   }
@@ -173,13 +194,13 @@ function validateSchedule(value) {
   }
 }
 
-function validateApiVersion(value) {
+function validateApiVersion(value: string): void {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error("api-version must use YYYY-MM-DD format.");
   }
 }
 
-function toPackageName(name) {
+function toPackageName(name: string): string {
   const normalized = name
     .trim()
     .toLowerCase()
@@ -189,7 +210,7 @@ function toPackageName(name) {
   return normalized || DEFAULT_TARGET_DIR;
 }
 
-function getDisplayTargetDir(targetDir) {
+function getDisplayTargetDir(targetDir: string): string {
   const relative = path.relative(process.cwd(), targetDir);
 
   if (!relative || relative === "") {
@@ -203,19 +224,23 @@ function getDisplayTargetDir(targetDir) {
   return relative;
 }
 
-async function directoryExists(targetDir) {
+async function directoryExists(targetDir: string): Promise<boolean> {
   try {
     const targetStat = await stat(targetDir);
     return targetStat.isDirectory();
   } catch (error) {
-    if (error && error.code === "ENOENT") {
+    if (isNodeError(error) && error.code === "ENOENT") {
       return false;
     }
     throw error;
   }
 }
 
-async function copyTemplate(sourceDir, targetDir, replacements) {
+async function copyTemplate(
+  sourceDir: string,
+  targetDir: string,
+  replacements: TemplateReplacements
+): Promise<void> {
   await assertReadable(sourceDir);
   const entries = await readdir(sourceDir, { withFileTypes: true });
 
@@ -237,7 +262,7 @@ async function copyTemplate(sourceDir, targetDir, replacements) {
   }
 }
 
-async function assertReadable(targetPath) {
+async function assertReadable(targetPath: string): Promise<void> {
   try {
     await access(targetPath);
   } catch {
@@ -245,9 +270,13 @@ async function assertReadable(targetPath) {
   }
 }
 
-function renderTemplate(content, replacements) {
+function renderTemplate(content: string, replacements: TemplateReplacements): string {
   return Object.entries(replacements).reduce(
-    (rendered, [key, value]) => rendered.replaceAll(`__${key}__`, value),
+    (rendered, [key, value]) => rendered.split(`__${key}__`).join(value),
     content
   );
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error;
 }

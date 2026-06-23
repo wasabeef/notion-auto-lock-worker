@@ -180,7 +180,7 @@ README では schedule 別の概算 run 数と cost 注意を記載し、Notion 
 
 source repository では、利用者が実際に使う npm create flow を定常的に検証できること。
 
-- `npm run check:quick` で scaffold logic の unit test と template typecheck を実行できること
+- `npm run check:quick` で scaffold logic の TypeScript unit test、root typecheck、template typecheck を実行できること
 - `npm run check:generated` で disposable な generated project を `.tmp/generated` 配下に作成できること
 - generated project で `npm install` と `npm run check` を実行できること
 - generated project に未置換 template placeholder が残っていないこと

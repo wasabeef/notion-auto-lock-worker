@@ -13,11 +13,10 @@
   },
   "homepage": "https://github.com/wasabeef/notion-auto-lock-worker#readme",
   "bin": {
-    "create-notion-auto-lock-worker": "./bin/create-notion-auto-lock-worker.js"
+    "create-notion-auto-lock-worker": "dist/cli.js"
   },
   "files": [
-    "bin",
-    "lib",
+    "dist",
     "templates",
     "README.md",
     "DEVELOPMENT.md",
@@ -27,13 +26,16 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "test": "node --test",
+    "build": "tsc -p tsconfig.json",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.dev.json --noEmit",
     "typecheck:template": "tsc -p tsconfig.template.json --noEmit",
-    "check:quick": "npm run test && npm run typecheck:template",
-    "check:generated": "node scripts/check-generated.mjs",
+    "check:quick": "npm run test && npm run typecheck && npm run typecheck:template",
+    "check:generated": "npm run build && tsx scripts/check-generated.ts",
     "check:example": "npm --prefix example ci && npm --prefix example run check",
     "check": "npm run check:quick && npm run check:generated && npm run check:example",
-    "pack:dry-run": "npm pack --dry-run"
+    "pack:dry-run": "npm pack --dry-run",
+    "prepack": "npm run build"
   },
   "keywords": [
     "notion",
@@ -54,6 +56,7 @@
   "devDependencies": {
     "@types/node": "^26.0.0",
     "@notionhq/workers": "^0.4.0",
+    "tsx": "^4.20.6",
     "typescript": "^6.0.3"
   }
 }

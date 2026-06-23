@@ -14,7 +14,7 @@ await mkdir(generatedRoot, { recursive: true });
 await mkdir(npmCacheDir, { recursive: true });
 
 run("node", [
-  "bin/create-notion-auto-lock-worker.js",
+  "dist/cli.js",
   projectDir,
   "--force",
   "--schedule",
@@ -33,7 +33,11 @@ run("npm", ["run", "check"], { cwd: projectDir });
 
 console.log(`Generated project check passed: ${path.relative(rootDir, projectDir)}`);
 
-function run(command, args, options = {}) {
+type RunOptions = {
+  cwd?: string;
+};
+
+function run(command: string, args: string[], options: RunOptions = {}): void {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? rootDir,
     env: process.env,
@@ -45,7 +49,7 @@ function run(command, args, options = {}) {
   }
 }
 
-async function assertGeneratedProject(targetDir) {
+async function assertGeneratedProject(targetDir: string): Promise<void> {
   const requiredFiles = [
     "src/index.ts",
     "package.json",
@@ -96,22 +100,22 @@ async function assertGeneratedProject(targetDir) {
   }
 }
 
-async function assertFileExists(filePath) {
+async function assertFileExists(filePath: string): Promise<void> {
   try {
     const fileStat = await stat(filePath);
     if (!fileStat.isFile()) {
       throw new Error(`${filePath} exists but is not a file.`);
     }
   } catch (error) {
-    if (error?.code === "ENOENT") {
+    if (isNodeError(error) && error.code === "ENOENT") {
       throw new Error(`Expected generated file is missing: ${filePath}`);
     }
     throw error;
   }
 }
 
-async function findPlaceholderFiles(targetDir) {
-  const matches = [];
+async function findPlaceholderFiles(targetDir: string): Promise<string[]> {
+  const matches: string[] = [];
 
   for (const file of await listFiles(targetDir)) {
     const content = await readFile(file, "utf8");
@@ -123,9 +127,9 @@ async function findPlaceholderFiles(targetDir) {
   return matches;
 }
 
-async function listFiles(targetDir) {
+async function listFiles(targetDir: string): Promise<string[]> {
   const entries = await readdir(targetDir, { withFileTypes: true });
-  const files = [];
+  const files: string[] = [];
 
   for (const entry of entries) {
     if (entry.name === "node_modules" || entry.name === ".git") {
@@ -147,14 +151,18 @@ async function listFiles(targetDir) {
   return files;
 }
 
-function assertEqual(actual, expected, label) {
+function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (actual !== expected) {
     throw new Error(`${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
   }
 }
 
-function assertIncludes(content, expected, label) {
+function assertIncludes(content: string, expected: string, label: string): void {
   if (!content.includes(expected)) {
     throw new Error(`${label}: expected generated content to include ${JSON.stringify(expected)}`);
   }
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error;
 }

@@ -1,9 +1,8 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Notion Auto Lock Worker uses GitHub Releases as the canonical changelog:
 
-## Unreleased
+https://github.com/wasabeef/notion-auto-lock-worker/releases
 
-- Add root page crawling with child page, child database, and data source traversal.
-- Add `LOCK_ROOT_PAGES=false` as the safe default so configured root pages are crawl anchors unless explicitly opted in.
-- Add generated-project checks, example Worker project, and OSS contribution/security docs.
+Release notes are generated from Conventional Commits. See
+[CONTRIBUTING.md](CONTRIBUTING.md#commit-messages) for the commit message rules.

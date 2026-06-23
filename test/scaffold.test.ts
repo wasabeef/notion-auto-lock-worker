@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { createProject, parseCliArgs } from "../lib/scaffold.js";
+import { createProject, parseCliArgs } from "../src/scaffold.js";
 
 test("parseCliArgs uses safe defaults", () => {
   const options = parseCliArgs([]);

@@ -3,7 +3,7 @@ import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { createProject } from "../lib/scaffold.js";
+import { createProject } from "../src/scaffold.js";
 
 const generatedTestDir = path.resolve(".tmp", "test-generated", "notion-auto-lock-worker");
 
