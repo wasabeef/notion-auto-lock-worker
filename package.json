@@ -4,6 +4,14 @@
   "description": "Create a Notion Worker that automatically locks stale Notion pages.",
   "type": "module",
   "packageManager": "npm@11.17.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wasabeef/notion-auto-lock-worker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wasabeef/notion-auto-lock-worker/issues"
+  },
+  "homepage": "https://github.com/wasabeef/notion-auto-lock-worker#readme",
   "bin": {
     "create-notion-auto-lock-worker": "./bin/create-notion-auto-lock-worker.js"
   },
@@ -12,6 +20,7 @@
     "lib",
     "templates",
     "README.md",
+    "DEVELOPMENT.md",
     "LICENSE",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -22,7 +31,7 @@
     "typecheck:template": "tsc -p tsconfig.template.json --noEmit",
     "check:quick": "npm run test && npm run typecheck:template",
     "check:generated": "node scripts/check-generated.mjs",
-    "check:example": "npm --prefix example ci && npm --prefix example run typecheck",
+    "check:example": "npm --prefix example ci && npm --prefix example run check",
     "check": "npm run check:quick && npm run check:generated && npm run check:example",
     "pack:dry-run": "npm pack --dry-run"
   },
@@ -33,11 +42,14 @@
     "automation",
     "page-lock"
   ],
-  "author": "",
+  "author": "wasabeef",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
-    "node": ">=26",
-    "npm": ">=11"
+    "node": ">=22",
+    "npm": ">=10.9.2"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",

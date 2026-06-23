@@ -16,6 +16,7 @@ try {
   console.log("Next steps:");
   console.log(`  cd ${result.relativeTargetDir}`);
   console.log("  npm install");
+  console.log("  npm run check");
   console.log("  ntn login");
   console.log("  ntn workers env set AUTO_LOCK_API_TOKEN=ntn_...");
   console.log("  ntn workers env set AUTO_LOCK_ROOT_PAGE_IDS=...");

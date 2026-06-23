@@ -29,7 +29,7 @@ run("npm", ["install", "--cache", npmCacheDir, "--prefer-offline", "--no-audit",
   cwd: projectDir
 });
 run("npm", ["run", "build"], { cwd: projectDir });
-run("npm", ["run", "typecheck"], { cwd: projectDir });
+run("npm", ["run", "check"], { cwd: projectDir });
 
 console.log(`Generated project check passed: ${path.relative(rootDir, projectDir)}`);
 
@@ -65,6 +65,8 @@ async function assertGeneratedProject(targetDir) {
   assertEqual(packageJson.engines?.node, ">=22", "generated node engine");
   assertEqual(packageJson.engines?.npm, ">=10.9.2", "generated npm engine");
   assertEqual(packageJson.scripts?.build, "tsc", "build script");
+  assertEqual(packageJson.scripts?.check, "tsc --noEmit", "check script");
+  assertEqual(packageJson.scripts?.typecheck, "npm run check", "typecheck script");
   assertEqual(packageJson.scripts?.["dry-run"], "ntn workers sync trigger autoLockPages", "dry-run script");
 
   const index = await readFile(path.join(targetDir, "src", "index.ts"), "utf8");

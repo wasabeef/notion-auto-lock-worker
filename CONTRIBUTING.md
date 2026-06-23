@@ -4,6 +4,8 @@ Thanks for helping improve `create-notion-auto-lock-worker`.
 
 ## Local Setup
 
+See `DEVELOPMENT.md` for the full local setup, check commands, and manual Notion validation flow.
+
 ```bash
 mise install
 npm install
@@ -15,16 +17,10 @@ Run the fast local checks:
 npm run check:quick
 ```
 
-Run the full generated-project check before opening a pull request:
+Run the full check before opening a pull request:
 
 ```bash
 npm run check
-```
-
-If your local npm cache has permission issues, use a project-local cache for pack checks:
-
-```bash
-npm --cache .tmp/npm-cache pack --dry-run
 ```
 
 ## Development Notes

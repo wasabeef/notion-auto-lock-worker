@@ -24,6 +24,8 @@ test("generated worker project has expected defaults and no placeholders", async
   assert.equal(packageJson.engines.node, ">=22");
   assert.equal(packageJson.engines.npm, ">=10.9.2");
   assert.equal(packageJson.scripts.build, "tsc");
+  assert.equal(packageJson.scripts.check, "tsc --noEmit");
+  assert.equal(packageJson.scripts.typecheck, "npm run check");
   assert.equal(packageJson.scripts["dry-run"], "ntn workers sync trigger autoLockPages");
 
   const index = await readFile(path.join(generatedTestDir, "src", "index.ts"), "utf8");

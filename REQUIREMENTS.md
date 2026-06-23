@@ -182,7 +182,7 @@ source repository では、利用者が実際に使う npm create flow を定常
 
 - `npm run check:quick` で scaffold logic の unit test と template typecheck を実行できること
 - `npm run check:generated` で disposable な generated project を `.tmp/generated` 配下に作成できること
-- generated project で `npm install` と `npm run typecheck` を実行できること
+- generated project で `npm install` と `npm run check` を実行できること
 - generated project に未置換 template placeholder が残っていないこと
 - generated project の検証 artifact は repository に含めず、`.tmp/` 配下に閉じること
 - `npm run check` で quick check と generated project check の両方を実行できること

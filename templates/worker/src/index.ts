@@ -970,5 +970,5 @@ function getNetworkErrorCode(error: unknown): string {
 }
 
 function normalizeId(value: string): string {
-  return value.replaceAll("-", "").toLowerCase();
+  return value.replace(/-/g, "").toLowerCase();
 }
