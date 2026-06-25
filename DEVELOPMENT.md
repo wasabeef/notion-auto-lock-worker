@@ -2,6 +2,8 @@
 
 This document is for maintainers and contributors working on `create-notion-auto-lock-worker`.
 
+AI-assisted sessions should start with `AGENTS.md`. Claude-specific sessions can also read `CLAUDE.md`.
+
 ## Local Setup
 
 Install project-local tools with mise:
@@ -106,6 +108,8 @@ The schedule minimum follows the current [Workers syncs guide](https://developer
 ## Manual Notion Validation
 
 The checked-in `example/` project is used for manual validation against a real Notion workspace.
+
+For live Worker operations, remote env handling, run inspection, and unlocked-page troubleshooting, use `docs/MAINTAINER_OPERATIONS.md`.
 
 ```bash
 cd example
